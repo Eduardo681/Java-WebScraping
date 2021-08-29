@@ -5,6 +5,7 @@ import lombok.extern.java.Log;
 import org.aspectj.apache.bcel.generic.LOOKUPSWITCH;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ public class ScrapingUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScrapingUtil.class);
 
     public static void main(String[] args) {
-        String url = BASE_URL_GOOGLE + "palmeiras+x+corinthians+08/08/2020" + COMPLEMENTO;
+        String url = BASE_URL_GOOGLE + "sao+pauloxjuventude" + COMPLEMENTO;
         ScrapingUtil scraping = new ScrapingUtil();
         scraping.obterInformacoesPartida(url);
     }
@@ -31,7 +32,14 @@ public class ScrapingUtil {
             String title = document.title();
             LOGGER.info(title);
             StatusPartida statusPartida = obterStatusPartida(document);
-            String tempoPartida = obterTempoPartida(document);
+            if(statusPartida != StatusPartida.PARTIDA_NAO_INICIADA) {
+                String tempoPartida = obterTempoPartida(document);
+            }
+            String nomeEquipeCasa = recuperarNomeEquipeCasa(document);
+            String nomeEquipeVisitante = recuperarNomeEquipeVisitante(document);
+            String urlLogoEquipeCasa = recuperarUrlLogoEquipeCasa(document);
+            String urlLogoEquipeVisitante = recuperarUrlLogoEquipeVisitante(document);
+
         } catch (IOException e) {
             LOGGER.error("Erro ao conectar no google com JSOUP -> {}", e.getMessage());
         }
@@ -79,5 +87,29 @@ public class ScrapingUtil {
         } else {
             return tempo;
         }
+    }
+
+    private static String recuperarNomeEquipeCasa(Document document){
+        Element el = document.selectFirst("div[class=imso_mh__first-tn-ed imso_mh__tnal-cont imso-tnol]");
+        String nome = el.select("span").text();
+        return nome;
+    }
+
+    private static String recuperarNomeEquipeVisitante(Document document){
+        Element el = document.selectFirst("div[class=imso_mh__second-tn-ed imso_mh__tnal-cont imso-tnol]");
+        String nome = el.select("span").text();
+        return nome;
+    }
+
+    private static String recuperarUrlLogoEquipeCasa(Document document){
+        Element el = document.selectFirst("div[class=imso_mh__first-tn-ed imso_mh__tnal-cont imso-tnol]");
+        String urlLogo = el.select("img[class=imso_btl__mh-logo]").attr("src");
+        return urlLogo;
+    }
+
+    private static String recuperarUrlLogoEquipeVisitante(Document document){
+        Element el = document.selectFirst("div[class=imso_mh__second-tn-ed imso_mh__tnal-cont imso-tnol]");
+        String urlLogo = el.select("img[class=imso_btl__mh-logo]").attr("src");
+        return urlLogo;
     }
 }
